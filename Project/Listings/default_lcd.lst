@@ -1,0 +1,755 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; design the screen and defines the positions to write c
+                       urrent temperature and range
+    2 00000000         ; Position of the current number is 
+    3 00000000         ; Y address = bank 1  ->  send 0x41  
+    4 00000000         ; X address = column 72  ->  send 0xC8 
+    5 00000000         ; Position of temperature range numbers is 
+    6 00000000         ; Y address = bank 4  ->  send 0x44  
+    7 00000000         ; X address = column 37  ->  send 0xA5
+    8 00000000         
+    9 00000000 40004100 
+                       LCD_DC  EQU              0x40004100
+   10 00000000 40008008 
+                       SSI0_DR EQU              0x40008008
+   11 00000000 4000800C 
+                       SSI0_SR EQU              0x4000800C
+   12 00000000         
+   13 00000000         
+   14 00000000         ;LABEL DIRECTIVE VALUE COMMENT
+   15 00000000                 AREA             sdata , DATA, READONLY
+   16 00000000                 THUMB
+   17 00000000 04 3F 44 
+              40 20    WRITE_T DCB              0x04, 0x3f, 0x44, 0x40, 0x20 
+                                                            ; t
+   18 00000005 38 54 54 
+              54 18    WRITE_E DCB              0x38, 0x54, 0x54, 0x54, 0x18 
+                                                            ; e
+   19 0000000A 7C 04 18 
+              04 78    WRITE_M DCB              0x7c, 0x04, 0x18, 0x04, 0x78 
+                                                            ; m
+   20 0000000F 7C 14 14 
+              14 08    WRITE_P DCB              0x7c, 0x14, 0x14, 0x14, 0x08 
+                                                            ; p
+   21 00000014 7C 08 04 
+              04 08    WRITE_R DCB              0x7c, 0x08, 0x04, 0x04, 0x08 
+                                                            ; r
+   22 00000019 20 54 54 
+              54 78    WRITE_A DCB              0x20, 0x54, 0x54, 0x54, 0x78 
+                                                            ; a
+   23 0000001E 3C 40 40 
+              20 7C    WRITE_U DCB              0x3c, 0x40, 0x40, 0x20, 0x7c 
+                                                            ; u
+   24 00000023 3E 41 41 
+              41 22    WRITE_CAPS_C
+                               DCB              0x3e, 0x41, 0x41, 0x41, 0x22 
+                                                            ; C
+   25 00000028 7C 08 04 
+              04 78    WRITE_N DCB              0x7c, 0x08, 0x04, 0x04, 0x78 
+                                                            ; n
+   26 0000002D 00 36 36 
+              00 00    WRITE_COLON
+                               DCB              0x00, 0x36, 0x36, 0x00, 0x00 
+                                                            ; :
+   27 00000032 0C 52 52 
+              52 3E    WRITE_G DCB              0x0c, 0x52, 0x52, 0x52, 0x3e 
+                                                            ; g
+   28 00000037 01 01 7F 
+              01 01    WRITE_CAPS_T
+                               DCB              0x01, 0x01, 0x7f, 0x01, 0x01 
+                                                            ; T
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   29 0000003C 08 08 08 
+              08 08    WRITE_DASH
+                               DCB              0x08, 0x08, 0x08, 0x08, 0x08 
+                                                            ; -
+   30 00000041         
+   31 00000041 3E 51 49 
+              45 3E    WRITE_0 DCB              0x3e, 0x51, 0x49, 0x45, 0x3e
+   32 00000046 00 42 7F 
+              40 00    WRITE_1 DCB              0x00, 0x42, 0x7f, 0x40, 0x00
+   33 0000004B 42 61 51 
+              49 46    WRITE_2 DCB              0x42, 0x61, 0x51, 0x49, 0x46
+   34 00000050 21 41 45 
+              4B 31    WRITE_3 DCB              0x21, 0x41, 0x45, 0x4b, 0x31
+   35 00000055 18 14 12 
+              7F 10    WRITE_4 DCB              0x18, 0x14, 0x12, 0x7f, 0x10
+   36 0000005A 27 45 45 
+              45 39    WRITE_5 DCB              0x27, 0x45, 0x45, 0x45, 0x39
+   37 0000005F 3C 4A 49 
+              49 30    WRITE_6 DCB              0x3c, 0x4a, 0x49, 0x49, 0x30
+   38 00000064 01 71 09 
+              05 03    WRITE_7 DCB              0x01, 0x71, 0x09, 0x05, 0x03
+   39 00000069 36 49 49 
+              49 36    WRITE_8 DCB              0x36, 0x49, 0x49, 0x49, 0x36
+   40 0000006E 06 49 49 
+              29 1E    WRITE_9 DCB              0x06, 0x49, 0x49, 0x29, 0x1e
+   41 00000073         
+   42 00000073         ;main Area of default_LCD
+   43 00000073                 AREA             default_LCD_area , READONLY, CO
+DE, ALIGN=2
+   44 00000000                 THUMB
+   45 00000000                 EXPORT           default_LCD
+   46 00000000         
+   47 00000000         default_LCD
+                               PROC
+   48 00000000 B53F            PUSH             {R0, R1, R2, R3, R4, R5, LR}
+   49 00000002         
+   50 00000002 F04F 0440       MOV              R4, #0x40   ; Y address 0
+   51 00000006 F04F 0580       MOV              R5, #0x80   ; X address 0
+   52 0000000A F000 F89D       BL               pos_config
+   53 0000000E         
+   54 0000000E         ; start of data 
+   55 0000000E 495C            LDR              R1, =SSI0_DR
+   56 00000010         
+   57 00000010         ; write "Current"
+   58 00000010 4D5C            LDR              R5, =WRITE_CAPS_C
+   59 00000012 F000 F887       BL               write
+   60 00000016         
+   61 00000016 4D5C            LDR              R5, =WRITE_U
+   62 00000018 F000 F884       BL               write
+   63 0000001C         
+   64 0000001C 4D5B            LDR              R5, =WRITE_R
+   65 0000001E F000 F881       BL               write
+   66 00000022         
+   67 00000022 4D5A            LDR              R5, =WRITE_R
+   68 00000024 F000 F87E       BL               write
+   69 00000028         
+   70 00000028 4D59            LDR              R5, =WRITE_E
+   71 0000002A F000 F87B       BL               write
+   72 0000002E         
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   73 0000002E 4D59            LDR              R5, =WRITE_N
+   74 00000030 F000 F878       BL               write
+   75 00000034         
+   76 00000034 4D58            LDR              R5, =WRITE_T
+   77 00000036 F000 F875       BL               write
+   78 0000003A         
+   79 0000003A         ; NEW LINE   
+   80 0000003A F04F 0441       MOV              R4, #0x41   ; Y address 1
+   81 0000003E F04F 0580       MOV              R5, #0x80   ; X address 0
+   82 00000042 F000 F881       BL               pos_config
+   83 00000046         
+   84 00000046         ; start of data 
+   85 00000046 494E            LDR              R1, =SSI0_DR
+   86 00000048         
+   87 00000048         ; write "temperature"
+   88 00000048 4D53            LDR              R5, =WRITE_T
+   89 0000004A F000 F86B       BL               write
+   90 0000004E         
+   91 0000004E 4D50            LDR              R5, =WRITE_E
+   92 00000050 F000 F868       BL               write
+   93 00000054         
+   94 00000054 4D51            LDR              R5, =WRITE_M
+   95 00000056 F000 F865       BL               write
+   96 0000005A         
+   97 0000005A 4D51            LDR              R5, =WRITE_P
+   98 0000005C F000 F862       BL               write
+   99 00000060         
+  100 00000060 4D4B            LDR              R5, =WRITE_E
+  101 00000062 F000 F85F       BL               write
+  102 00000066         
+  103 00000066 4D49            LDR              R5, =WRITE_R
+  104 00000068 F000 F85C       BL               write
+  105 0000006C         
+  106 0000006C 4D4D            LDR              R5, =WRITE_A
+  107 0000006E F000 F859       BL               write
+  108 00000072         
+  109 00000072 4D49            LDR              R5, =WRITE_T
+  110 00000074 F000 F856       BL               write
+  111 00000078         
+  112 00000078 4D43            LDR              R5, =WRITE_U
+  113 0000007A F000 F853       BL               write
+  114 0000007E         
+  115 0000007E 4D43            LDR              R5, =WRITE_R
+  116 00000080 F000 F850       BL               write
+  117 00000084         
+  118 00000084 4D42            LDR              R5, =WRITE_E
+  119 00000086 F000 F84D       BL               write
+  120 0000008A         
+  121 0000008A 4D47            LDR              R5, =WRITE_COLON
+  122 0000008C F000 F84A       BL               write
+  123 00000090         
+  124 00000090         
+  125 00000090         
+  126 00000090         
+  127 00000090         ; NEW LINE
+  128 00000090 F04F 0443       MOV              R4, #0x43   ; Y address 3
+  129 00000094 F04F 0580       MOV              R5, #0x80   ; X address 0
+  130 00000098 F000 F856       BL               pos_config
+  131 0000009C         
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  132 0000009C         ; start of data 
+  133 0000009C 4938            LDR              R1, =SSI0_DR
+  134 0000009E         
+  135 0000009E         ; write "Temperature"
+  136 0000009E 4D43            LDR              R5, =WRITE_CAPS_T
+  137 000000A0 F000 F840       BL               write
+  138 000000A4         
+  139 000000A4 4D3A            LDR              R5, =WRITE_E
+  140 000000A6 F000 F83D       BL               write
+  141 000000AA         
+  142 000000AA 4D3C            LDR              R5, =WRITE_M
+  143 000000AC F000 F83A       BL               write
+  144 000000B0         
+  145 000000B0 4D3B            LDR              R5, =WRITE_P
+  146 000000B2 F000 F837       BL               write
+  147 000000B6         
+  148 000000B6 4D36            LDR              R5, =WRITE_E
+  149 000000B8 F000 F834       BL               write
+  150 000000BC         
+  151 000000BC 4D33            LDR              R5, =WRITE_R
+  152 000000BE F000 F831       BL               write
+  153 000000C2         
+  154 000000C2 4D38            LDR              R5, =WRITE_A
+  155 000000C4 F000 F82E       BL               write
+  156 000000C8         
+  157 000000C8 4D33            LDR              R5, =WRITE_T
+  158 000000CA F000 F82B       BL               write
+  159 000000CE         
+  160 000000CE 4D2E            LDR              R5, =WRITE_U
+  161 000000D0 F000 F828       BL               write
+  162 000000D4         
+  163 000000D4 4D2D            LDR              R5, =WRITE_R
+  164 000000D6 F000 F825       BL               write
+  165 000000DA         
+  166 000000DA 4D2D            LDR              R5, =WRITE_E
+  167 000000DC F000 F822       BL               write
+  168 000000E0         
+  169 000000E0         ; NEW LINE
+  170 000000E0 F04F 0444       MOV              R4, #0x44   ; Y address 4
+  171 000000E4 F04F 0580       MOV              R5, #0x80   ; X address 0
+  172 000000E8 F000 F82E       BL               pos_config
+  173 000000EC         
+  174 000000EC         ; start of data 
+  175 000000EC 4924            LDR              R1, =SSI0_DR
+  176 000000EE         
+  177 000000EE 4D27            LDR              R5, =WRITE_R
+  178 000000F0 F000 F818       BL               write
+  179 000000F4         
+  180 000000F4 4D2B            LDR              R5, =WRITE_A
+  181 000000F6 F000 F815       BL               write
+  182 000000FA         
+  183 000000FA 4D26            LDR              R5, =WRITE_N
+  184 000000FC F000 F812       BL               write
+  185 00000100         
+  186 00000100 4D2B            LDR              R5, =WRITE_G
+  187 00000102 F000 F80F       BL               write
+  188 00000106         
+  189 00000106 4D22            LDR              R5, =WRITE_E
+  190 00000108 F000 F80C       BL               write
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  191 0000010C         
+  192 0000010C 4D26            LDR              R5, =WRITE_COLON
+  193 0000010E F000 F809       BL               write
+  194 00000112         
+  195 00000112         
+  196 00000112         
+  197 00000112         ; exit the function
+  198 00000112 E8BD 403F       POP              {R0, R1, R2, R3, R4, R5, LR}
+  199 00000116 4770            BX               LR
+  200 00000118         
+  201 00000118         
+  202 00000118         ; before transmission, check if line is available
+  203 00000118 4A26    chk_SSI_fifo
+                               LDR              R2, =SSI0_SR
+  204 0000011A 6813            LDR              R3, [R2]
+  205 0000011C F013 0310       ANDS             R3, #0x10
+  206 00000120 D1FA            BNE              chk_SSI_fifo
+  207 00000122 4770            BX               LR
+  208 00000124         
+  209 00000124         ; write the desired char to the current location     
+  210 00000124 B500    write   PUSH             {LR}
+  211 00000126         ; address of the desired char is in R5
+  212 00000126 F04F 0405       MOV              R4, #5
+  213 0000012A F7FF FFF5 
+                       write_r BL               chk_SSI_fifo
+  214 0000012E F855 0B01       LDR              R0, [R5], #1
+  215 00000132 6008            STR              R0, [R1]
+  216 00000134 3C01            SUBS             R4, #1
+  217 00000136 D1F8            BNE              write_r
+  218 00000138         
+  219 00000138 F7FF FFEE       BL               chk_SSI_fifo
+  220 0000013C F04F 0000       MOV              R0, #0x00
+  221 00000140 6008            STR              R0, [R1]
+  222 00000142         
+  223 00000142 F85D EB04       POP              {LR}
+  224 00000146 4770            BX               LR
+  225 00000148         
+  226 00000148         
+  227 00000148         ; change current position
+  228 00000148 B500    pos_config
+                               PUSH             {LR}
+  229 0000014A         ; R5: X position, R4: Y position
+  230 0000014A 491B            LDR              R1, =LCD_DC
+  231 0000014C F04F 0000       MOV              R0, #0x00   ; D/C is low (contr
+                                                            ol)
+  232 00000150 6008            STR              R0, [R1]
+  233 00000152         
+  234 00000152         
+  235 00000152 F7FF FFE1       BL               chk_SSI_fifo
+  236 00000156 490A            LDR              R1, =SSI0_DR
+  237 00000158 F04F 0020       MOV              R0, #0x20   ; basic command mod
+                                                            e (H = 0) and horiz
+                                                            ontal addressing mo
+                                                            de (V = 0)
+  238 0000015C 6008            STR              R0, [R1]
+  239 0000015E         
+  240 0000015E F7FF FFDB       BL               chk_SSI_fifo
+  241 00000162         
+  242 00000162 4620            MOV              R0, R4      ; Y address 
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+  243 00000164 6008            STR              R0, [R1]
+  244 00000166         
+  245 00000166 F7FF FFD7       BL               chk_SSI_fifo
+  246 0000016A         
+  247 0000016A 4628            MOV              R0, R5      ; X address 
+  248 0000016C 6008            STR              R0, [R1]
+  249 0000016E         
+  250 0000016E F7FF FFD3       BL               chk_SSI_fifo
+  251 00000172         
+  252 00000172 4911            LDR              R1, =LCD_DC
+  253 00000174 F04F 0040       MOV              R0, #0x40   ; D/C is high (data
+                                                            )
+  254 00000178 6008            STR              R0, [R1]
+  255 0000017A         
+  256 0000017A F85D EB04       POP              {LR}
+  257 0000017E 4770            BX               LR
+  258 00000180         
+  259 00000180                 ENDP
+  260 00000180                 ALIGN
+  261 00000180                 END
+              40008008 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              4000800C 
+              40004100 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=.\objects\default_lcd.d -o.\objects\default_lcd.o -ID:\Project3
+final\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0-Beta12\CMSIS\Include -IC:\Keil_
+v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123 --predefine="__EVAL SETA
+ 1" --predefine="__UVISION_VERSION SETA 521" --predefine="_RTE_ SETA 1" --prede
+fine="TM4C123GH6PM SETA 1" --list=.\listings\default_lcd.lst default_LCD.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+WRITE_0 00000041
+
+Symbol: WRITE_0
+   Definitions
+      At line 31 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_0 unused
+WRITE_1 00000046
+
+Symbol: WRITE_1
+   Definitions
+      At line 32 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_1 unused
+WRITE_2 0000004B
+
+Symbol: WRITE_2
+   Definitions
+      At line 33 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_2 unused
+WRITE_3 00000050
+
+Symbol: WRITE_3
+   Definitions
+      At line 34 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_3 unused
+WRITE_4 00000055
+
+Symbol: WRITE_4
+   Definitions
+      At line 35 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_4 unused
+WRITE_5 0000005A
+
+Symbol: WRITE_5
+   Definitions
+      At line 36 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_5 unused
+WRITE_6 0000005F
+
+Symbol: WRITE_6
+   Definitions
+      At line 37 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_6 unused
+WRITE_7 00000064
+
+Symbol: WRITE_7
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 38 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_7 unused
+WRITE_8 00000069
+
+Symbol: WRITE_8
+   Definitions
+      At line 39 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_8 unused
+WRITE_9 0000006E
+
+Symbol: WRITE_9
+   Definitions
+      At line 40 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_9 unused
+WRITE_A 00000019
+
+Symbol: WRITE_A
+   Definitions
+      At line 22 in file default_LCD.s
+   Uses
+      At line 106 in file default_LCD.s
+      At line 154 in file default_LCD.s
+      At line 180 in file default_LCD.s
+
+WRITE_CAPS_C 00000023
+
+Symbol: WRITE_CAPS_C
+   Definitions
+      At line 24 in file default_LCD.s
+   Uses
+      At line 58 in file default_LCD.s
+Comment: WRITE_CAPS_C used once
+WRITE_CAPS_T 00000037
+
+Symbol: WRITE_CAPS_T
+   Definitions
+      At line 28 in file default_LCD.s
+   Uses
+      At line 136 in file default_LCD.s
+Comment: WRITE_CAPS_T used once
+WRITE_COLON 0000002D
+
+Symbol: WRITE_COLON
+   Definitions
+      At line 26 in file default_LCD.s
+   Uses
+      At line 121 in file default_LCD.s
+      At line 192 in file default_LCD.s
+
+WRITE_DASH 0000003C
+
+Symbol: WRITE_DASH
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 29 in file default_LCD.s
+   Uses
+      None
+Comment: WRITE_DASH unused
+WRITE_E 00000005
+
+Symbol: WRITE_E
+   Definitions
+      At line 18 in file default_LCD.s
+   Uses
+      At line 70 in file default_LCD.s
+      At line 91 in file default_LCD.s
+      At line 100 in file default_LCD.s
+      At line 118 in file default_LCD.s
+      At line 139 in file default_LCD.s
+      At line 148 in file default_LCD.s
+      At line 166 in file default_LCD.s
+      At line 189 in file default_LCD.s
+
+WRITE_G 00000032
+
+Symbol: WRITE_G
+   Definitions
+      At line 27 in file default_LCD.s
+   Uses
+      At line 186 in file default_LCD.s
+Comment: WRITE_G used once
+WRITE_M 0000000A
+
+Symbol: WRITE_M
+   Definitions
+      At line 19 in file default_LCD.s
+   Uses
+      At line 94 in file default_LCD.s
+      At line 142 in file default_LCD.s
+
+WRITE_N 00000028
+
+Symbol: WRITE_N
+   Definitions
+      At line 25 in file default_LCD.s
+   Uses
+      At line 73 in file default_LCD.s
+      At line 183 in file default_LCD.s
+
+WRITE_P 0000000F
+
+Symbol: WRITE_P
+   Definitions
+      At line 20 in file default_LCD.s
+   Uses
+      At line 97 in file default_LCD.s
+      At line 145 in file default_LCD.s
+
+WRITE_R 00000014
+
+Symbol: WRITE_R
+   Definitions
+
+
+
+ARM Macro Assembler    Page 4 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 21 in file default_LCD.s
+   Uses
+      At line 64 in file default_LCD.s
+      At line 67 in file default_LCD.s
+      At line 103 in file default_LCD.s
+      At line 115 in file default_LCD.s
+      At line 151 in file default_LCD.s
+      At line 163 in file default_LCD.s
+      At line 177 in file default_LCD.s
+
+WRITE_T 00000000
+
+Symbol: WRITE_T
+   Definitions
+      At line 17 in file default_LCD.s
+   Uses
+      At line 76 in file default_LCD.s
+      At line 88 in file default_LCD.s
+      At line 109 in file default_LCD.s
+      At line 157 in file default_LCD.s
+
+WRITE_U 0000001E
+
+Symbol: WRITE_U
+   Definitions
+      At line 23 in file default_LCD.s
+   Uses
+      At line 61 in file default_LCD.s
+      At line 112 in file default_LCD.s
+      At line 160 in file default_LCD.s
+
+sdata 00000000
+
+Symbol: sdata
+   Definitions
+      At line 15 in file default_LCD.s
+   Uses
+      None
+Comment: sdata unused
+24 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+chk_SSI_fifo 00000118
+
+Symbol: chk_SSI_fifo
+   Definitions
+      At line 203 in file default_LCD.s
+   Uses
+      At line 206 in file default_LCD.s
+      At line 213 in file default_LCD.s
+      At line 219 in file default_LCD.s
+      At line 235 in file default_LCD.s
+      At line 240 in file default_LCD.s
+      At line 245 in file default_LCD.s
+      At line 250 in file default_LCD.s
+
+default_LCD 00000000
+
+Symbol: default_LCD
+   Definitions
+      At line 47 in file default_LCD.s
+   Uses
+      At line 45 in file default_LCD.s
+Comment: default_LCD used once
+default_LCD_area 00000000
+
+Symbol: default_LCD_area
+   Definitions
+      At line 43 in file default_LCD.s
+   Uses
+      None
+Comment: default_LCD_area unused
+pos_config 00000148
+
+Symbol: pos_config
+   Definitions
+      At line 228 in file default_LCD.s
+   Uses
+      At line 52 in file default_LCD.s
+      At line 82 in file default_LCD.s
+      At line 130 in file default_LCD.s
+      At line 172 in file default_LCD.s
+
+write 00000124
+
+Symbol: write
+   Definitions
+      At line 210 in file default_LCD.s
+   Uses
+      At line 59 in file default_LCD.s
+      At line 62 in file default_LCD.s
+      At line 65 in file default_LCD.s
+      At line 68 in file default_LCD.s
+      At line 71 in file default_LCD.s
+      At line 74 in file default_LCD.s
+      At line 77 in file default_LCD.s
+      At line 89 in file default_LCD.s
+      At line 92 in file default_LCD.s
+      At line 95 in file default_LCD.s
+      At line 98 in file default_LCD.s
+      At line 101 in file default_LCD.s
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 104 in file default_LCD.s
+      At line 107 in file default_LCD.s
+      At line 110 in file default_LCD.s
+      At line 113 in file default_LCD.s
+      At line 116 in file default_LCD.s
+      At line 119 in file default_LCD.s
+      At line 122 in file default_LCD.s
+      At line 137 in file default_LCD.s
+      At line 140 in file default_LCD.s
+      At line 143 in file default_LCD.s
+      At line 146 in file default_LCD.s
+      At line 149 in file default_LCD.s
+      At line 152 in file default_LCD.s
+      At line 155 in file default_LCD.s
+      At line 158 in file default_LCD.s
+      At line 161 in file default_LCD.s
+      At line 164 in file default_LCD.s
+      At line 167 in file default_LCD.s
+      At line 178 in file default_LCD.s
+      At line 181 in file default_LCD.s
+      At line 184 in file default_LCD.s
+      At line 187 in file default_LCD.s
+      At line 190 in file default_LCD.s
+      At line 193 in file default_LCD.s
+
+write_r 0000012A
+
+Symbol: write_r
+   Definitions
+      At line 213 in file default_LCD.s
+   Uses
+      At line 217 in file default_LCD.s
+Comment: write_r used once
+6 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+LCD_DC 40004100
+
+Symbol: LCD_DC
+   Definitions
+      At line 9 in file default_LCD.s
+   Uses
+      At line 230 in file default_LCD.s
+      At line 252 in file default_LCD.s
+
+SSI0_DR 40008008
+
+Symbol: SSI0_DR
+   Definitions
+      At line 10 in file default_LCD.s
+   Uses
+      At line 55 in file default_LCD.s
+      At line 85 in file default_LCD.s
+      At line 133 in file default_LCD.s
+      At line 175 in file default_LCD.s
+      At line 236 in file default_LCD.s
+
+SSI0_SR 4000800C
+
+Symbol: SSI0_SR
+   Definitions
+      At line 11 in file default_LCD.s
+   Uses
+      At line 203 in file default_LCD.s
+Comment: SSI0_SR used once
+3 symbols
+370 symbols in table

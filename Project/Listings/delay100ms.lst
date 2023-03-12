@@ -1,0 +1,63 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             |.text|, READONLY, CODE, ALIGN=
+2
+    2 00000000                 THUMB
+    3 00000000                 EXPORT           DELAY100MS
+    4 00000000         
+    5 00000000         DELAY100MS
+                               PROC
+    6 00000000         
+    7 00000000 F640 5A40 
+              F2C0 0A03        MOV32            R10, #200000
+    8 00000008         
+    9 00000008 BF00    AGAIN   NOP
+   10 0000000A BF00            NOP
+   11 0000000C F1BA 0A01       SUBS             R10, R10, #1
+   12 00000010 D1FA            BNE              AGAIN
+   13 00000012         
+   14 00000012 4770            BX               LR
+   15 00000014                 ENDP
+                       
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=.\objects\delay100ms.d -o.\objects\delay100ms.o -ID:\Project3fi
+nal\RTE -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.0-Beta12\CMSIS\Include -IC:\Keil_v5
+\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123 --predefine="__EVAL SETA 1
+" --predefine="__UVISION_VERSION SETA 521" --predefine="_RTE_ SETA 1" --predefi
+ne="TM4C123GH6PM SETA 1" --list=.\listings\delay100ms.lst Delay100ms.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 1 in file Delay100ms.s
+   Uses
+      None
+Comment: .text unused
+AGAIN 00000008
+
+Symbol: AGAIN
+   Definitions
+      At line 9 in file Delay100ms.s
+   Uses
+      At line 12 in file Delay100ms.s
+Comment: AGAIN used once
+DELAY100MS 00000000
+
+Symbol: DELAY100MS
+   Definitions
+      At line 5 in file Delay100ms.s
+   Uses
+      At line 3 in file Delay100ms.s
+Comment: DELAY100MS used once
+3 symbols
+338 symbols in table
